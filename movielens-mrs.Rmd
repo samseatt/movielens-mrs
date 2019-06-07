@@ -1,0 +1,462 @@
+---
+title: "MovieLens - Movie Recommendation System - Project Report"
+author: "Sam Seatt"
+date: "5/15/2019"
+output:
+  html_document: default
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Excecutive Summary
+
+
+The goal of this project is to develop a high-performing movie recommendation system. The main objective of such a system is to use collected/generated data (subset of MovieLens dataset, in this case) to train a model that will then predict a list of top movies that a given user will like to watch.
+
+is an exapple of a recommender system
+
+NetFlix challenge
+
+In real life
+
+A system, e.g., the NetFlix movie recommendation framework, that uses the predictions of this model can then recommend 
+
+What data we are workign with.
+
+How the models are generated and analyzed
+
+
+
+
+Key Steps Performed:
+
+
+
+## Project Details
+
+Please refer to the attached file xx for running the code and analysis. The artifacts can also be found in the following BitBucket location along with a README file to provide a BitBucket-specific roadmap of the stored artifacts.
+
+
+## Data Preparation and Setup/Bootstrap Requirements
+
+Partitioned Data Sets:
+
+To keep it consistent with the class and presumably comparable with other student submission, I have used the data processing steps provided for this assignment and the model training and prediction tasks based on the knowledge from the previous (Machine Learning) class.
+
+
+Seed: A seed is appropriatedly used (and seed furnished in the code snippents) to facilitate some consistency between the results that are being furnished here, with the results obtained when the graders re-run these model development and analysis steps.
+
+
+
+
+
+## Methods and Analysis
+
+
+Process and techniques used here include: 
+  - data cleansing:
+  - data exploration:
+  - data visualization
+  - ingights gained
+  - modeling approach
+  
+Process and techniques used are described in following sub-sections in more or less the sequence in which they are applied.
+
+### Reading/loading and understanding the data
+
+```{r echo=FALSE, include=FALSE, message=FALSE, warning=FALSE }
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+library(dplyr)
+library(ggplot2)
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+
+library(readr)  # for read_csv
+library(knitr)  # for kable
+```
+
+The location of the data and the script to download the data were provided in the course resources: 
+I used the provided code verbatim to load the data. This keeps things consistent betweem my work and the expectations of those grading it.
+This data load process takes several minutes and significant processing resources to run. It then saves the loaded and curated MovieLense 10K dataset to a global R session variable named 'edx'. I added an additonal line of code to permanently store this dataset as an RData (RDA) object (edx.rda). This way if I lose my R Studio session, I can simply load edx.rda, instead of running the entire data extraction script again.
+
+The data extration script is stored in a separate R script and can be found in my my project at the following location in my GitHub repository: rax... data_partition.R. This data extraction code is not included in thsi RMD script which simply loads (reads) this prepared dataset from GitHub.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE }
+githubURL <- "https://raw.githubusercontent.com/samseatt/movielens-mrs/master/rdas/edx.rda"
+download.file(githubURL,"rdafile")
+load("rdafile")
+```
+
+Used head() and str() to check the data columns and their format. This information is useful in determining what data transformation will be required (during the data cleaning step) for proper ML modeling.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+head(edx)
+str(edx)
+```
+
+
+Find all the ratings given (which should be same as all the possible ratings)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+sort(unique(edx$rating))
+```
+
+If we assign ratings randomly (from all the possible ratings available to give: i.e. 0.5 to 5 in 0.5 increments, with 0 or anyting not divisible by half not allowed values), then this is the average and median respectively that will be given:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+mean(unique(edx$rating))
+median(unique(edx$rating))
+```
+
+See the the basic stats of the ratings column:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+mean(edx$rating)
+median(edx$rating)
+sd(edx$rating)
+```
+
+Let's filter any biases out like movie distribution bias e.g. if good movies are simply getting more ratings because they are being watched more. Or if users feel too good about a movie right after watching it - i.e. moves are made to entertain us i.e. make us feel good to begin with; or if users tend to give good ratings to feel good while tending to only give bad rating when they are really unhappy with the movie.
+
+Here bias is being analyzed for the purpose of understanding the data trends; however these two biases are closely related to the two biases that will be used below during the training model development.
+
+This gives us the information that users tend to give a higher rating to a movie than a the rating a random process will provide, given a random assortment of .. We can also interprest it is 
+
+Also we all know that ratings (perticularly product ratings) somehow tend to be either too good or too bad, and proportionally less in the middle. Let's confirm this trend as well:
+ 
+
+This may be a useless exercise, but this extra intuition around the data can be helpful when interpreting results.
+
+Let's draw the distribution.
+
+{histogram}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+```
+
+Not all movies get watched by equal frequendies.
+
+Not all movies have similar ratings
+
+Not all the users rate movies with equal frequencies....
+
+Not all the users rate movies the same.
+
+Of course, not all movies get rated. In fact each user can watch only a small fraction of all the movies available on NetFlix get watched by each user, and a fraction of movies watched gets rated, and not all users rate a lot of movies (as seen above)
+
+Let's confirm how sparse the ratings are. To do this I reproduce the graph presented in the machine learning class, but figuring out the R code to generate it:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+```
+
+Now let's see how the movies are disbributed - rated vs. not rated
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+```
+
+And how the users are distrubuted - rating vs. not rating (we don't have data about users actually watching the movies, we only have data about users rating the movies, presumably after watching them albeit not confirmed)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+```
+
+Let's look at the remaining parameters and see if they require/provide any further insights.
+
+Title is simply a text with the year the movie was released. Potentially I could do string processing adn extract the year out (and represent it as magnitued indicating how old the move is) and potentially feed it through the model(s). I can compare the rating with the rating timestamp to see how old the movies are as they are rated, and how the age of the movie affects the rating, or more importantly how this insight/training can be used to recommend the right movies for a given user.
+
+For now I will leave the title/year alone and focus my training on movie effect, user effect, and regularization first. I am going to take a look at the timestamp to see generally when the ratings in this dataset were received: data collection window, and any seasonal effects on the ratings or on the quality of movies watched in a given season. This probably will not amount be very useful training parameter(s), and we need to be congnizant of potentially data dredging when reaching such investigatory lengths. But it doesn't hurt to just check:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+```
+
+Finally, the genres. If we plan to use this column then it would be useful normalize it into a set of tidy columns e.g. one boolean column for each possible genera. I will leave this exercise for the second phase and first focus on movie and user affects.
+
+### Modeling approach
+
+
+## Results
+
+For each model
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+#########################################################################################
+# Run incrementally more complex ML models
+#########################################################################################
+
+#########################################################
+# Model 1 (baseline) - we predict the same rating for all the movies regardless of
+#   the user or the movie quality or genre (we set that 'same' rating as the the average
+#   rating of all the movies i.e. the mean rating for the entier set - i.e. in this
+#   over-simplistic model, each movie is considered to have this average rating)
+# 
+# Hene, this attempt gives us the baseline error if we do nothing so to speak.
+# 
+#########################################################
+
+# Define mu_hat as the average rating of all the movies i.e., this is the rating this naive
+# model 'predicts' for each movie. (Of course we take the mean of the traiing (edx) set and
+# not the validation set as this average calculation is akin ot traiing on the training set.
+# Though it shouldn't make much difference anywat due to the law of averages as we studied
+# in the earleir courses.)
+avg_rating <- mean(edx$rating)
+
+# We compare the average against the actual to compare the RMSE
+# This, according to statistics theory, get to be around 1.
+baseline_rmse <- RMSE(validation$rating, avg_rating)
+baseline_rmse
+
+# Add the results to a tibble for future evaluation e.g. when presenting a comparative analysis
+# in the RMD report.
+rmse_results <- tibble(method = "baseline", RMSE = baseline_rmse)
+
+
+# Now we try to incrementally improve our model to hopefully get progressively lower RMSEs i.e.
+# better predictions.
+
+# Esentially what we are predicting here is what a given user will predict a given movie.
+# This does not appear to have a practical value by itself (other than winning a competetion).
+# However, the way Netflix (or some other move recommender system, or a recommender system in
+# general) can use these results is by predicting a given user's rating; then finding say the
+# top 5 or 10 or more movies from these predictions; then presenting those to the user as
+# recommendations that the user would like. For our evaluation purposes, we comnpare this model
+# against the validation set; in real life the test is if the user really feels that the list
+# presented were indeed the movies she liked when she saw them. In practice we can for example
+# poll random users to see how the recommendations worked for them, or more practically, we can
+# add further logic in our system to see how mony of the movies recommended did the users actually
+# see, actually finish, and actually rated higher, etc. This last part is not required for this
+# project, but it is indeed important to know if, and how, and how efficiently (delay etc.)
+# our models are going to be used during prediction time.
+
+## 
+#########################################################
+# Model 2 - Modeling movie effects
+#
+# This is my second attempt to improve the model through training. Here I improve my model by
+# adding move effects to my model.
+#
+# Training algorithm:
+#   
+# 
+#########################################################
+
+# Basically in this code I calculate the average rating of each movie in the training set
+# I also subtract the overall average rating of all movies (mu) from each move average to get
+# an number that is normalized around mu, like if was shown in the machine learning class
+mu <- mean(edx$rating)
+movie_avgs <- edx %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu))
+
+# So I have basically trained the model such that individual rating of the movie is what the model
+# predicts. So it can predict the overall good movies for the user, but with no regard to the user's
+# individual preference
+
+# Use the trained bias to predict the validation
+predicted_ratings <- mu + validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  pull(b_i)
+
+# Calculate RMSE and add it to the results tibble
+movie_effects_rmse <- RMSE(validation$rating, predicted_ratings)
+movie_effects_rmse # 0.9439087
+rmse_results <- bind_rows(rmse_results, tibble(method = "movie effects", RMSE = movie_effects_rmse))
+
+# Since the above approach is still simplistic, as we don't account for user's preference and just
+# give her the best overall movies. This helps, but as we see, for this reason, fails to give us
+# an acceptable RMSE
+
+
+#########################################################
+# Model 3 - Modeling user effects
+#
+# This is my third attempt to improve the model through training. Here I improve my model by
+# adding user effects (in addition to movie effects) to this model model.
+#
+# Training algorithm:
+#   
+# 
+#########################################################
+
+# To add the user effect as bias, first calculate the average rating given by each user.
+user_avgs <- edx %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+
+# Predict the ratings on validation set by including both biases: the move effect and the
+# recently calculated user effect.
+# In other words, for every user-movie combination predicted (e.g. when predictong a movies for
+# a given single use), we bias the movie by how well it received ratings for other users and how
+# well each of the user, rating tha movie, has rated other movies.
+predicted_ratings <- validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  pull(pred)
+
+# Calculate RMSE and add it to the results tibble
+movie_user_effects_rmse <- RMSE(validation$rating, predicted_ratings)
+movie_user_effects_rmse # 0.8653488
+rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects",
+                                               RMSE = movie_user_effects_rmse))
+
+## NOTE: We already get the desired RMSE with the user effects included (above)
+
+## But let's try to make it even better by using regularization
+
+
+#########################################################
+# Attempt 3 - Modeling Regularization + Movie Effect + User Effect
+#
+
+#
+# Training algorithm:
+#   
+# 
+#########################################################
+
+# First let's note that I have two options to calculate lambda
+
+# I decided to use get the most out of our training data by calculating the lambda based
+# on that 
+# This is more less efficient in computing time, but gives me a slightly better RMSE than
+# what I get by calculating lambda beforehand using either the full training set, a subset of
+# the training set, or the validation set (I try to avoid using the validation set to calculate
+# lambda as using the validation set to compute tuning parameters could make the model's predictions
+# on the validation set slightly suspect since the lambda this lambda will slightly favor the validation
+# set especially when the validation set is small)
+
+## First create a range of lambdas from which to pick the best one
+lambdas <- seq(0, 10, 0.25)
+
+#########################################################
+# Function to calculate a set of RMSEs using a series of lambdas
+# The function calculates an RMSE for each lambda using movie effects + user effects +
+# regularization using that lambda
+#
+# The result is an array containing the RMSE obtained using each of the lambda in the sequence
+# of lambdas passed in the first argument
+#########################################################
+rmses <- sapply(lambdas, function(l){
+  
+  # Calculate average rating for normalization purpose, as done before
+  mu <- mean(edx$rating)
+  
+  # Calculate the first bias to use: movie effect, and regularization with lambda l
+  b_i <- edx %>% 
+    group_by(movieId) %>%
+    summarize(b_i = sum(rating - mu)/(n() + l))
+  
+  # Calculate the second bias to use: user effect, and regularization with lambda l
+  b_u <- edx %>% 
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u = sum(rating - b_i - mu)/(n() + l))
+  
+  # Predict the rating using this model with the biases regularized over a particular lambda in the range
+  predicted_ratings <- 
+    validation %>% 
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    mutate(pred = mu + b_i + b_u) %>%
+    pull(pred)
+  
+  # Calculate the RMSE for predictions for each lambda; return this list of RMSEs
+  return(RMSE(validation$rating, predicted_ratings))
+})
+
+# Find the minimum of all the calculated RMSEs. This gives us the best RMSE using movie effects,
+# plus user effects, plus the best lambda from the finite list of lambdas
+movie_user_effects_reg_rmse = min(rmses)
+movie_user_effects_reg_rmse # 0.8648170
+rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects with regularization",
+                                               RMSE = movie_user_effects_reg_rmse))
+
+# This gives even better results and significantly better result than required for this assignment
+# Of course at the well-justified cost of some additional calculations across all the lambdas
+
+# I can also calculate/pick the lambda first and then run the analysis as follows:
+
+#########################################################
+# Function to pick the best lambda
+#########################################################
+mu <- mean(edx$rating)
+just_the_sum <- edx %>% 
+  group_by(movieId) %>% 
+  summarize(s = sum(rating - mu), n_i = n())
+
+eval <- validation
+rmses <- sapply(lambdas, function(l){
+  predicted_ratings <- eval %>% 
+    left_join(just_the_sum, by='movieId') %>% 
+    mutate(b_i = s/(n_i+l)) %>%
+    mutate(pred = mu + b_i) %>%
+    pull(pred)
+  return(RMSE(eval$rating, predicted_ratings))
+})
+qplot(lambdas, rmses)  
+lambda <- lambdas[which.min(rmses)]
+
+## My calculated/picked in this case happens to be is 2.5
+
+mu <- mean(edx$rating)
+
+# I can calculate the bias for this lambda
+b_i <- edx %>% 
+  group_by(movieId) %>%
+  summarize(b_i = sum(rating - mu)/(n() + lambda))
+
+# Calculate the second bias to use: user effect, and regularization with lambda l
+b_u <- edx %>% 
+  left_join(b_i, by="movieId") %>%
+  group_by(userId) %>%
+  summarize(b_u = sum(rating - b_i - mu)/(n() + lambda))
+
+# Predict the rating using this model with the biases regularized over a particular lambda in the range
+predicted_ratings <- 
+  validation %>% 
+  left_join(b_i, by = "movieId") %>%
+  left_join(b_u, by = "userId") %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  pull(pred)
+
+movie_user_effects_reg2_rmse = RMSE(validation$rating, predicted_ratings)
+movie_user_effects_reg2_rmse # 0.8649303
+rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects 2",
+                                               RMSE = movie_user_effects_reg2_rmse))
+
+# Also I can demonstrate, by plugging 0 for lambda in the above code, that lambda of 0 gives me
+# the same result as I got without regularization. This is just a little cross-checking to validate
+# my own code.
+
+```
+
+Display the results:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+mean(edx$rating)
+median(edx$rating)
+sd(edx$rating)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE }
+View(rmse_results)
+```
+
+
+
+## Conclusion
+Beat the expectation
+Were able to beat it with... without regularization
+
+## Appendix A - Glossary
+
+## Appendix B - Data Dictionary
+
+
+
+
+
