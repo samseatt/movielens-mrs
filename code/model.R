@@ -31,8 +31,14 @@ library(stringr) # string and text manipulation
 # You can subsequently load it using the following code (It may be commented it you copy since you don't have
 # my RDA ojbect, however you can grab it from my github project).
 
-load( file="rdas/edx.rda")
-load( file="rdas/validation.rda")
+edx_path <- "https://adaprise-01.s3.amazonaws.com/edx/edx.rda"
+validation_path <- "https://adaprise-01.s3.amazonaws.com/edx/validation.rda"
+if (!exists("edx")) {
+  load(url(edx_path))
+}
+if (!exists("validation")) {
+  load(url(validation_path))
+}
 
 # Otherwise, if you decide to run my code, it will use the edx and validation session objects from
 # your environment.
@@ -139,7 +145,7 @@ edx_lite <- edx[edx_lite_index,]
 # Visualize sparseness
 edx_lite %>% ggplot(aes(as.factor(movieId), as.factor(userId), fill = rating)) +
   geom_tile(color = "grey50") +
-  scale_fill_gradientn(colors = RColorBrewer::brewer.pal(9, "Reds"), trans = "sqrt") +
+  scale_fill_gradientn(colors = RColorBrewer::brewer.pal(9, "Oranges"), trans = "sqrt") +
   theme_minimal() +  theme(axis.text.x = element_blank(),
                            axis.text.y = element_blank()) +
   ggtitle("Ratings Sparseness") + 
@@ -526,6 +532,10 @@ rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects 
 # Also I can demonstrate, by plugging 0 for lambda in the above code, that lambda of 0 gives me
 # the same result as I got without regularization. This is just a little cross-checking to validate
 # my own code.
+
+# Finally , print the results
+rmse_results %>% knitr::kable()
+
 
 ################
 
