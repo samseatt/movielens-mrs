@@ -67,6 +67,17 @@ RMSE <- function(true_ratings, predicted_ratings){
   sqrt(mean((true_ratings - predicted_ratings)^2))
 }
 
+if(FALSE) { # START COMMENT OUT
+  #
+  # COMMENT OUT THE FOLLOWINT BLOCK OF CODE IN ORDER TO SPEED UP RUN TIME DURING GRADING.
+  #
+  # THE PLOTTING CODE WILL BE SKIPPED AND FLOW WILL GO STRAIGHT TO MODEL TRAINING.
+  # THIS IS DONE TO SAVE GRADERS TIME IF THEY CHOOSE TO RUN MY MODELS LOCALLY.
+  #
+  # IT STILL TAKES ABOUT 3 MINUTES TO FINISH ON MY COMPUTER, A LITTLE LONGER IF edx IS LOADED
+  # FROM SCRATCH.
+  #
+
 ######################################################################################
 # Data analysis and explorative visualizations
 ######################################################################################
@@ -283,6 +294,8 @@ edx_x %>%
 # with any enhancement in the model that will account for the weekday when suggesting movies to
 # a user.
 
+
+}  # END COMMENTED OUT CODE
 
 
 ######################################################################################
