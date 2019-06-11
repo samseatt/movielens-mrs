@@ -40,6 +40,9 @@ if (!exists("validation")) {
   load(url(validation_path))
 }
 
+# load( file="rdas/edx.rda")
+# load( file="rdas/validation.rda")
+
 # Otherwise, if you decide to run my code, it will use the edx and validation session objects from
 # your environment.
 

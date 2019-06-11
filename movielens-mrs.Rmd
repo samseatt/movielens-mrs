@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## About this Project
 Project GitHub Repository:  https://github.com/samseatt/movielens-mrs
 
-To remain consistent with the project-inception artifacts, I have used R version 3.5.2 (2018-12-20) for developing and running my scripts.
+To remain consistent with the earlier course artifacts, I have used R version 3.5.2 (2018-12-20) for developing and running my scripts.
 
 The Readme file (https://raw.githubusercontent.com/samseatt/movielens-mrs/master/Readme.txt) in the GithHub repository describes how to set up this project (if you are interested beyond the artifact attached with this submission). Basically you can download my RStudio project file in the GitHub repository, or you may simply Run model.R file or Knit movielens-project-report.Rmd file from any RStudio project, provided you have some basic R libraries installed.
 
@@ -31,16 +31,16 @@ The scripts then load the objects listed above into the local environment.
 
 You will need to make appropriate edits in the code depending on the option you want to run and where you want to get the dataset from. 
 
-Before committing to run these artifacts, be aware that the data download (over the internet, in this case) and several operations on that full dataset (including some transformations, plots and model training) take significant time. The entire end-to-end script (either when you run model.R in its entirety, or Knit the full movielens-mrs.Rmd) takes about 10 minutes to run on my Macbook Pro laptop.
+Before committing to run these artifacts, be aware that the data download (over the internet, in this case) and several operations on that full dataset (including some transformations, plots and model training) take significant time to run. The entire end-to-end script (either when you run model.R in its entirety, or Knit the full movielens-mrs.Rmd) takes about 10 minutes to complete on my Macbook Pro laptop.
 
 
 # Executive Summary
 
 ## Introduction
 
-The goal of this project is to develop a well-performing movie recommendation system. The main objective of such a system is to use collected/generated data (subset of MovieLens dataset, in this case) to train a model that will then predict a list of top movies that a given user will like to watch.
+The goal of this project is to develop a well-performing movie recommendation system. The main objective of such a system is to use collected/generated data (the 10M subset of MovieLens dataset, in this case) to train a model that will then predict a list of top movies that a given user may like to watch.
 
-In addition to developing the machine learning models, data is analyzed, explored and visualized in order gain several insights. A copy of the dataset was then further curated to aid in further visualizations, and to more conveniently exploit (in the future) the insights learned from this data.
+In addition to developing the machine learning models, data is analyzed, explored and visualized in order gain several insights. A copy of the dataset was then further curated to aid in further visualizations, and to more conveniently exploit (in the future) the insights learned from this project.
 
 The MovieLens solution is an example of a recommender system (or recommendation system). These systems seek to predict the rating or preference a user would give to an item. (source: Recommender Systems Handbook, Springer, 2011, pages 1-35)
 
@@ -50,25 +50,26 @@ Specifically, in this case, in content-based recommendation systems, users and i
 ## The Netflix Challenge
 According to a wired magazine article (“This is how Netflix’s top-secret recommendation system works”), “more than 80 per cent of the TV shows people watch on Netflix [around 2017] are discovered through the platform's recommendation system. This project attempts to retrace some of the actions taken when the contestants and engineers developed that system. The objective is to achieve an RMSE <= 0.87750 using the 10M version of the MovieLens data provided by the course staff.
 
-In real life recommendation systems are ubiquitous, especially on the internet and they are not limited to movie and product recommendation. 
+In real life recommendation systems are ubiquitous, especially on the internet, and they are not limited to movie and product recommendation. 
 
 ## Goals and Objectives
 The objective of my (trained) models is to predict the rating, given a movie (represented by a movie ID) and a user (represented by a user ID). More specifically, at prediction time the model will take a movie ID and a user ID, and predict what rating this particular user will give to the given move.
 
-The basic underlying strategy boils down to filling in the ratings for the unfilled slots all the movie/user combinations, based on the small subset of previously filled spots (by actual users). 
+The basic underlying strategy boils down to filling in the ratings for the unfilled slots of all the movie/user combinations, based on the small subset of previously filled spots (ratings by actual users). 
 
-The end goal is then to use pattern/model i.e. trained slots to filter the best rated movies for a user and recommend them to her.
+The end goal is then to use this pattern/model i.e. use the slots filled during training, to filter the best rated movies for a user and recommend them to her.
 
-The metric, or performance used here is RMSE (the root mean squared error, predicted on the previously allocated validation dataset).
+The metric, or performance used here is RMSE (the root mean squared error, predicted on the formally allocated validation dataset).
 
 
 ## Process, and Model Selection
-The training approach or strategy is to not use linear regression due to the large dataset and its combinatorial vastness.  Instead the approach taken (using mean rating and “effects”) is developed to practically achieve the same effect as linear regression.
+The training approach or strategy is to not use linear regression due to the large size of the dataset and its combinatorial vastness.  Instead the approach taken (using mean rating and “effects”) is developed to practically achieve the same effect as linear regression would.
 
-I start with a random baseline model where the model always gives an average rating.  I then add movie effects to my model. This is followed by adding the user effect, and both user and movie effects. Then I add regularization. Regularization allows me to 
-This incremental approach will also help me understand the contribution of each of these effects as well as that of regularization, including the specific hyperparameters tried (lambda in this case) to achieve best results.
+I start with a random baseline model where the model always gives an average rating.  I then add movie effects to my model. This is followed by adding the user effect. Then I add regularization. Regularization allows me to through out the outlier ratings in order to prevent overtraiing or overfitting.
 
-Prior to the modeling exercise I explored and visualized the data I later use in training. The hope is that this allows me and the reader to get an intuition of the independent variables (including the movie itself, the user desiring a rating, the time a rating is given, and the genre(s) the movei belongs to) and their effects on the final rating a movie receives from a user. This exploration also brings some insights on what other independent effects have the potential to further improve the RMSE and thus provide even more valuable movie suggestions. We need to be cognizant though about which parameters to use, and which we simply ignore, in order to avoid overtraining the model and to not unnecessarily slow its training (and potentially even the prediction-time) performance. 
+This incremental approach will also help me understand the contribution of each of the two effects or biases, as well as that of regularization, including the specific hyperparameters tried (lambda in this case) to achieve best results.
+
+Prior to the modeling exercise I explored and visualized the data that I later use in training. The hope is that this allows me and the reader to get an intuition of the independent variables (including the movie itself, the user desiring a rating, the time a rating is given, and the genre(s) the movei belongs to) and their effects on the final rating a movie receives from a user. This exploration also brings some insights on what other independent effects we have that can potentially further improve the RMSE and thus provide even more valuable movie suggestions. We need to be cognizant though about which parameters to use, and which we simply ignore, in order to avoid overtraining the model and to not unnecessarily slow its training (and potentially even the prediction-time) performance. 
 
 Finally, as mentioned, established techniques like linear regression are not applied here directly due to the relatively large size of dataset and the fact that the raw models will tantamount to predicting every rating for every user/movie combination. Doing so will require computing resources beyond what’s available to me locally in the student setting.
 
@@ -93,6 +94,7 @@ timestamp: A system timestamp indicating the date and time the rating was submit
 title: A text string containing the title of the movie and the year it was released
 
 genres: A list of genres the movie belongs to. Genres are a pipe-separated list, and are selected from the following:
+
 *	Action
 *	Adventure
 *	Animation
@@ -131,6 +133,7 @@ This subsection highlights the key steps performed during this analysis. The out
 # Methods and Analysis
 
 Process and techniques used here include: 
+
 * data cleansing
 * data exploration
 * data visualization
@@ -183,6 +186,9 @@ if (!exists("edx")) {
 if (!exists("validation")) {
   load(url(validation_path))
 }
+
+# load( file="rdas/edx.rda")
+# load( file="rdas/validation.rda")
 ```
 
 ### Inspect the Loaded Dataset
@@ -192,6 +198,7 @@ Used head() and str() to check the data columns and their format. This informati
 The following shows the columns of the training set data frame and the type of data contains within the columns:
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE }
+head(edx) %>% knitr::kable()
 str(edx)
 ```
 
@@ -223,7 +230,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 }
 ```
 
-## Data Analysis and Explorative Visualizations
+## Data Analysis and Exploratory Visualizations
 
 ### Check data distributions, especially ratings stats and trends
 
@@ -259,40 +266,46 @@ This may not be a very useful exercise for model-development purpose, but this e
 The following histogram helps us to see the distribution of each possible rating given to movies.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
+options(scipen=10000)
 edx %>% ggplot(aes(x=rating)) + 
-  geom_histogram(color="black", fill="orange", binwidth=0.5)
+  geom_histogram(color="black", fill="orange", binwidth=0.5) +
+  ggtitle("Ratings Distribution") +
+  xlab("Rating") +
+  ylab("Ratings count by type")
 ```
 
 It shows that not only the ratings tend to be higher i.e. not centered at around 2.75, but also (as noted in the Machine Learning module) whole number ratings are much more common than half-point ratings (0.5, 1.5, 2.5, 3.5 and 4.5).
 
-## Statistical Analysis
-
-### Stats related to movies and users in the dataset
+### Statistics related to movies and users in the dataset
 
 Show the average rating and rating frequency of each specifid movie.
 
- - lowest rated movies:
+##### lowest rated movies:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
 edx %>% group_by(movieId) %>%
   summarize(title = first(title), average = mean(rating), count = n()) %>%
   arrange(average)
 ```
 
- - highest rated movies:
+#####  highest rated movies:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
 edx %>% group_by(movieId) %>%
   summarize(title = first(title), average = mean(rating), count = n()) %>%
   arrange(desc(count))
 ```
 
- - movies rated the least number of times (among those that were rated at least once, since otherwise they won't be in our dataset):
+#####  movies rated the least number of times (among those that were rated at least once, since otherwise they won't be in our dataset):
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
 edx %>% group_by(movieId) %>%
   summarize(title = first(title), average = mean(rating), count = n()) %>%
   arrange(count)
 ```
 
- - movies rated the most number of times:
+#####  movies rated the most number of times:
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
 edx %>% group_by(movieId) %>%
   summarize(title = first(title), average = mean(rating), count = n()) %>%
@@ -309,6 +322,7 @@ edx %>% group_by(movieId) %>%
   arrange(average) %>%
   ggplot(aes(x=average)) + 
   geom_histogram(color="black", fill="orange") +
+  ggtitle("Distribution of Total Ratings Received for Every Movie") +
   xlab("Average rating given to a movie") + 
   ylab("Number of movies")
 ```
@@ -321,6 +335,7 @@ edx %>% group_by(userId) %>%
   arrange(average) %>%
   ggplot(aes(x=average)) + 
   geom_histogram(color="black", fill="orange") +
+  ggtitle("Distribution of Total Ratings Given by Every User") +
   xlab("Average rating given by a user") + 
   ylab("Number of users")
 ```
@@ -365,8 +380,8 @@ edx_lite %>% ggplot(aes(as.factor(movieId), as.factor(userId), fill = rating)) +
   theme_minimal() +  theme(axis.text.x = element_blank(),
                            axis.text.y = element_blank()) +
   ggtitle("Ratings Sparseness") + 
-  ylab("users") + 
-  xlab("movies")
+  ylab("Users") + 
+  xlab("Movies")
 ```
 
 The above stat and plot show that the ratings are fairly sparse with about 1.2 % (percent) of all movies rated. But it is not as sparse as one can can think i.e. a single average user cannot watch 1% of all the movies in the system, let alone go ahead and then rate each one of them. This, however, makes more sense when we the fact that the database only contains (a) just the movies that have been rated (that is, that were at least watched during the data collection period, and (b) relatively less consequentially, only those users are listed who have rated at least one movie. We need to be aware of this characteristic/limitation of the dataset when we use it to describe the world.
@@ -384,6 +399,7 @@ as_data_frame(by_genres) %>%
   mutate(genres = reorder(genres, count)) %>%
   ggplot(aes(x=genres, y=count)) +
   geom_bar(position="dodge", stat="identity", fill="orange") +
+  ggtitle("Distribution of Ratings by Genre") +
   labs(x="Genre", y="Ratings received for each genra") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
@@ -450,18 +466,15 @@ validation_x <- mutate(validation, time = as.Date.POSIXct(timestamp),
                 western = grepl("Western", genres)
 )
 
-
-
 str(edx_x)
-
 summary(edx_x)
-summary(validation_x)
+# summary(validation_x)
 
 set.seed(2)
 edx_x_lite_index <- createDataPartition(y = edx_x$rating, times = 1, p = 0.00001, list = FALSE)
 edx_x_lite <- edx[edx_x_lite_index,]
 
-summary(edx_x_lite)
+# summary(edx_x_lite)
 ```
 
 With these additional / spread out columns, now I can calculate the time lapse between the release of a movie and the day the rating was received. This information parameter can then potentially be fed into an ML model to account for a bias that we can call a "new movie effect". Of course, should we decide to use such a parameter then it would be beneficial for very old movies that were release decades before NetFlix came into existence, to have their effects truncated. Movie release date can also be used as a parameter in itself to gauge if particular user tends to like newer movies, or all movies relatively equally.
@@ -487,7 +500,10 @@ edx %>%
   summarize(rating = mean(rating)) %>%
   ggplot(aes(week, rating)) +
   geom_point(color="orange") +
-  geom_smooth(color="red", method = "loess")
+  geom_smooth(color="red", method = "loess") +
+  ggtitle("Ratings Average Across the Data Collection Window") + 
+  ylab("Average rating during the week") + 
+  xlab("Time in weekly slices")
 ```
 
 Now let's see if there is a specific pattern over different weekdays.
@@ -503,6 +519,7 @@ edx_x %>%
   mutate(rating_day = reorder(rating_day, count)) %>%
   ggplot(aes(x=rating_day, y=count)) +
   geom_bar(position="dodge", stat="identity", fill="orange") +
+  ggtitle("Ratings Distribution Over Days of the Week") + 
   labs(x="Day of the week", y="Ratings received for each weekday") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
@@ -524,7 +541,7 @@ The approach taken here will be the same as in the class. Use an explicit model 
 
 # Results and Outcomes
 
-## Model 1: Baseline
+## Model 1 - Baseline
 we predict the same rating for all the movies regardless of the user or the movie quality or genre (we set that 'same' rating as the the average rating of all the movies i.e. the mean rating for the entier set - i.e. in this over-simplistic model, each movie is considered to have this average rating). Hence, this attempt gives us the baseline error if we do nothing so to speak.
 
 Define mu_hat as the average rating of all the movies i.e., this is the rating this naive model 'predicts' for each movie. (Of course we take the mean of the traiing (edx) set and not the validation set as this average calculation is akin ot traiing on the training set. Though it shouldn't make much difference anyway due to the law of averages as we studied.
@@ -548,8 +565,7 @@ rmse_results <- tibble(method = "baseline", RMSE = baseline_rmse)
 ```
 
 
-Now we try to incrementally improve our model to hopefully get progressively lower RMSEs i.e.
-better predictions.
+Now we try to incrementally improve our model to hopefully get progressively lower RMSEs i.e. better predictions.
 
 Esentially what we are predicting here is what a given user will predict a given movie. This does not appear to have a practical value by itself (other than winning a competetion). However, the way Netflix (or some other move recommender system, or a recommender system in general) can use these results is by predicting a given user's rating; then finding say the top 5 or 10 or more movies from these predictions; then presenting those to the user as recommendations that the user would like. For our evaluation purposes, we comnpare this model against the validation set; in real life the test is if the user really feels that the list presented were indeed the movies she liked when she saw them. In practice we can for example poll random users to see how the recommendations worked for them, or more practically, we can add further logic in our system to see how mony of the movies recommended did the users actually see, actually finish, and actually rated higher, etc. This last part is not required for this project, but it is indeed important to know if, and how, and how efficiently (delay etc.) our models are going to be used during prediction time.
 
@@ -584,7 +600,7 @@ rmse_results <- bind_rows(rmse_results, tibble(method = "movie effects", RMSE = 
 Since the above approach is still simplistic, as we don't account for user's preference and just give her the best overall movies. This helps, but as we see, for this reason, fails to give us an acceptable RMSE
 
 
-## Model 3 - Modeling User Effects
+## Model 3 - Modeling Movie Effects + User Effects
 
 This is my third attempt to improve the model through training. Here I improve my model by adding user effects (in addition to movie effects) to this model model.
 
@@ -619,7 +635,7 @@ NOTE: We already get the desired RMSE with the user effects included (above)
 But let's try to make it even better by using regularization
 
 
-## Model 4 - Modeling Regularization + Movie Effect + User Effect
+## Model 4 - Modeling Regularization + Movie Effects + User Effects
 
 First let's note that I have two options to calculate lambda
 
@@ -677,7 +693,7 @@ This gives even better results and significantly better result than required for
 
 However, I can also calculate/pick the lambda first and then run the analysis as follows:
 
-## Model 5 - Modeling Regularization + Movie Effect + User Effect - with picked lambda
+## Model 5 - Modeling Regularization + Movie Effects + User Effects - with picked lambda
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE }
 #########################################################
@@ -723,7 +739,7 @@ predicted_ratings <-
 
 movie_user_effects_reg2_rmse = RMSE(validation$rating, predicted_ratings)
 movie_user_effects_reg2_rmse # 0.8649303
-rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects 2",
+rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects, picked lambda",
                                                RMSE = movie_user_effects_reg2_rmse))
 
 ```
@@ -731,7 +747,7 @@ rmse_results <- bind_rows(rmse_results, tibble(method = "movie and user effects 
 Also I can demonstrate, by plugging 0 for lambda in the above code, that lambda of 0 gives me the same result as I got without regularization. This is just a little cross-checking to validate my own code.
 
 
-## Display the results:
+## Display the Result
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE }
 mean(edx$rating)
@@ -747,19 +763,19 @@ rmse_results %>% knitr::kable()
 # Conclusion
 Using movie effect, user effect and regularization with a properly tuned lambda provided an RMSE of 0.86482. This beats the required target of <= 0.87750.
 
-This is a significant improvement to the baseline, and if implemented will certainly provide benefit for the end users. The two aforementioned effects and regularization imply that the improvement is achieved by preferring movies that are better rated, by preferring movies that are liked by users who rate similar to that user, and by not preferring movies with outlier and infrequent ratings and thus reducing overfitting. 
+This is a significant improvement to the baseline, and if implemented will certainly provide benefit for the end users. The two aforementioned effects and regularization imply that the improvement is achieved by preferring movies that are better rated, by preferring movies that are liked by users who rate similar to that user, and by not preferring movies with outlier and infrequent ratings, and thus reducing overfitting. 
 
 This project was a great learning exercise that allowed me to consolidate what I learned in this data science specialization, and specifically in its machine learning class. However, the RMSE of our final model could be further improved based on the recommendation provided in the following subsection. Such ongoing improvements can be attempted in the future iterations of this project.
 
 ## Further Recommendations, and Future Considerations
 
-In addition to RMSE, precision and specificity may also be important tradeoffs depending upon the context in which something is being recommended in general. For example, if something being recommended is time consuming (for example, buying ticket and going somewhere solely on the basis of a recommendation) then accuracy of recommendation may be a factor that may be valued more, while if the recommendation is reminding an important action to perform (for example, an important accessory to an item being purchased, or a treatment option based on matching a patient’s profile with a disease profile) that may rather not be missed, then specificity may be valued more in the recommended outcome.
+In addition to RMSE, precision and specificity may also be important tradeoffs depending upon the context in which something is being recommended in general. For example, if something being recommended is time consuming (for example, buying ticket and going somewhere solely on the basis of a recommendation) then accuracy of recommendation may be a factor that may be valued more, while if the recommendation is reminding an important action to perform (for example, buying an important accessory to an item being purchased, or a treatment option based on matching a patient’s profile with a disease profile) that may rather not be missed, then specificity may be valued more in the recommended outcome.
 
 Additional independent parameters and effects discovered and curated during analysis could be used to further enhance the model and improve its RMSE further. These include the genera(s) the movie belongs vs. the genera(s) that the user prefers, how old the movie is when it is rated, and the time of the day or day of the week the movie is watched (rated).
 
-Performance (large, cross-connected dataset) prevents me from trying more standardized (out-of-box) models like linear regression, nearest neighbors, SVD (single value decomposition), PCA (principal component analysis), and deep learning. Moving forward, these could be further explored with a reduced version of the training set, or on a cloud platform.
+Performance (computational complexity of the large, cross-connected dataset) prevents me from trying more standardized (out-of-box) models like linear regression, nearest neighbors, SVD (single value decomposition), PCA (principal component analysis), and deep learning. Moving forward, these could be further explored with a reduced version of the training set, or on a cloud platform.
 
-Finally, the runtime (prediction-time) is also an important consideration. Will the data used in training the model, will also be available (or available in curated form) at runtime in a timely, efficient, and relevant manner?
+Finally, the runtime (prediction-time) is also an important consideration. We need to ensure that same inputs used in training the model, will also be available (amd available in a usable form) at runtime in a timely, efficient, and relevant manner.
 
 
 # References:
